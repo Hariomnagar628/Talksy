@@ -2,9 +2,7 @@ package com.audio.ToText.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.*;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -12,8 +10,14 @@ public class Websocket implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // changed endpoint from /chat to /ws-chat to avoid conflict with the chat page
-        registry.addEndpoint("/ws-chat").setAllowedOrigins("http://localhost:8080").withSockJS();
+        // allow localhost in dev and your production railway host
+        registry.addEndpoint("/ws-chat")
+                .setAllowedOrigins(
+                    "http://localhost:8080",
+                    "https://talksy-production-5c5c.up.railway.app",  // add your railway domain
+                    "https://talksy.railway.app" // optional if you have other domains
+                )
+                .withSockJS();
     }
 
     @Override
