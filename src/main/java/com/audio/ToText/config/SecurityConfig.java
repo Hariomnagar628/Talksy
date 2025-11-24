@@ -5,64 +5,59 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-
-import com.audio.ToText.Repository.userrepository;
 
 @Configuration
 public class SecurityConfig {
 
-    private final userrepository userRepository;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(userrepository userRepository) {
-        this.userRepository = userRepository;
+    public SecurityConfig(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
     }
 
-    // Load user from DB
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
-                .map(user -> User.withUsername(user.getUsername())
-                        .password(user.getPassword())
-                        .roles("USER")
-                        .build())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
-
-    // Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Authentication Manager
     @Bean
     public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // Security rules
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/auth/register", "/login", "/css/**", "/js/**").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .formLogin(login -> login
-                                .loginPage("/login").permitAll()
-                                .defaultSuccessUrl("/chat", true)
-                )
-                .logout(logout -> logout.permitAll());
+        http
+            .csrf(csrf -> csrf.disable()) // disable for development; enable later for security
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                        "/auth/register",
+                        "/auth/login",
+                        "/login",          // login processing URL
+                        "/css/**",
+                        "/js/**",
+                        "/upload",
+                        "/files/**"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/auth/login")         // GET login page (AuthController)
+                .loginProcessingUrl("/login")     // POST from <form th:action="@{/login}">
+                .defaultSuccessUrl("/chat", true) // after success
+                .failureUrl("/auth/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/auth/login?logout=true")
+                .permitAll()
+            );
+
         return http.build();
     }
 }
-
-
-
-
