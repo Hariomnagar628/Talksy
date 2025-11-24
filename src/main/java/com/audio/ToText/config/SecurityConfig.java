@@ -34,17 +34,19 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // disable for development; enable later for security
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/auth/register",
-                        "/auth/login",
-                        "/login",          // login processing URL
-                        "/css/**",
-                        "/js/**",
-                        "/upload",
-                        "/files/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
+    .requestMatchers(
+            "/auth/register",
+            "/auth/login",
+            "/login",
+            "/css/**",
+            "/js/**",
+            "/upload",
+            "/files/**",
+            "/ws-chat/**"     // ADD THIS
+    ).permitAll()
+    .anyRequest().authenticated()
+)
+
             .formLogin(form -> form
                 .loginPage("/auth/login")         // GET login page (AuthController)
                 .loginProcessingUrl("/login")     // POST from <form th:action="@{/login}">
