@@ -32,28 +32,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // disable for development; enable later for security
+            .csrf(csrf -> csrf.disable()) // ok for dev
+
             .authorizeHttpRequests(auth -> auth
-    .requestMatchers(
-            "/auth/register",
-            "/auth/login",
-            "/login",
-            "/css/**",
-            "/js/**",
-            "/upload",
-            "/files/**",
-            "/ws-chat/**"     // ADD THIS
-    ).permitAll()
-    .anyRequest().authenticated()
-)
+                .requestMatchers(
+                        "/auth/register",
+                        "/auth/login",
+                        "/auth/forgot-password",
+                        "/auth/reset-password",
+                        "/login",
+                        "/css/**",
+                        "/js/**",
+                        "/upload",
+                        "/files/**",
+                        "/ws-chat/**"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
 
             .formLogin(form -> form
-                .loginPage("/auth/login")         // GET login page (AuthController)
+                .loginPage("/auth/login")         // GET login page
                 .loginProcessingUrl("/login")     // POST from <form th:action="@{/login}">
                 .defaultSuccessUrl("/chat", true) // after success
                 .failureUrl("/auth/login?error=true")
                 .permitAll()
             )
+
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/auth/login?logout=true")
